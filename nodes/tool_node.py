@@ -1,34 +1,56 @@
 from langchain_community.tools import DuckDuckGoSearchRun
+from langchain_google_genai import ChatGoogleGenerativeAI
 
-duck_search = DuckDuckGoSearchRun()
+
+duck_search = DuckDuckGoSearchRun() 
+
+llm = ChatGoogleGenerativeAI(
+    model="gemini-2.5-flash",
+    google_api_key="api_key",
+    temperature=0.4
+)
 
 def tool_node(state: dict):
-
     """
     Tool-based information retrieval node that fetches real-time fashion trends 
     from external sources when relevant.
 
-    This node analyzes the user's query to detect keywords such as 
-    "latest", "trend", "new", or "fashion". If such keywords are present, 
-    it triggers a web search using DuckDuckGo to retrieve up-to-date information.
-
-    If no relevant keywords are found, the node skips tool usage and returns 
-    an empty response to avoid unnecessary API calls.
-
-    The retrieved results provide dynamic, real-world insights that can 
-    complement rule-based and LLM-generated responses, ensuring the system 
-    stays current with evolving fashion trends.
+    Enhancements:
+    - Uses stricter keyword filtering to avoid irrelevant searches
+    - Cleans and summarizes raw search results using LLM
+    - Prevents noisy or unrelated content from reaching the user
     """
 
+    query = state["user_input"].lower()
 
-    query = state["user_input"]
+    trend_keywords = ["latest", "trend", "trending", "new"]
+    fashion_keywords = ["fashion", "outfit", "style", "wear", "clothing", "dress", "saree"]
 
-    if not any(word in query.lower() for word in ["latest", "trend", "new", "fashion"]):
+    if not (
+        any(word in query for word in trend_keywords) and
+        any(word in query for word in fashion_keywords)
+    ):
         return {"tool_response": ""}
 
-    ddg_results = duck_search.run(query)
+    try:
 
-    return {
-        "tool_response": ddg_results
-    }
+        raw_results = duck_search.run(query)
+
+        summary_prompt = f"""
+        Extract ONLY fashion-related trends from the text below.
+        Ignore news, politics, or unrelated topics.
+
+        Provide 3-5 short bullet points.
+
+        Text:
+        {raw_results}
+        """
+
+        summary = llm.invoke(summary_prompt).content
+
+        return {"tool_response": summary}
+
+    except Exception as e:
+        print("Tool Error:", e)
+        return {"tool_response": ""}
 
