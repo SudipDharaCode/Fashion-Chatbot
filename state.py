@@ -1,4 +1,3 @@
-# state.py
 from typing import TypedDict, List
 
 class ChatState(TypedDict):
