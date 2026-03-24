@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+langchain
+langchain-community
+langgraph
+google-generativeai
+python-dotenv
+duckduckgo-search
+langchain-google-genai
+ddgs
