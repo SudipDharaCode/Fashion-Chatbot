@@ -45,7 +45,5 @@ User Input → Intent Detection →
 
 ---
 
-## ⚙️ Setup Instructions
-
-### 1. Clone the Repository
+![WorkFLow Diagram](mermaid-diagram.png)
 
